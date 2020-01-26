@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import xgboost as xgb
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -34,4 +35,21 @@ y_pred = cls_lr.predict(X_test)
 
 # check model performance
 print("Accuracy for logistic regression is equal to", np.round(accuracy_score(y_test, y_pred), 3))
+
+# xgboost
+# read in data
+
+X = df.iloc[:, 1:9].values
+y = df.iloc[:, 9].values
+
+x_boost_train, x_boost_test, y_boost_train, y_boost_test = train_test_split(X, y, test_size=0.20, random_state=42)
+
+dtrain = xgb.DMatrix(x_boost_train, y_boost_train)
+dtest = xgb.DMatrix(x_boost_test, y_boost_test)
+# specify parameters via map
+param = {'max_depth': 2, 'eta': 1, 'objective': 'multi:softmax', 'num_class': 8}
+num_round = 2
+bst = xgb.train(param, dtrain, num_round)
+# make prediction
+preds = bst.predict(dtest)
 
