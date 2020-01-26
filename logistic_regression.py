@@ -3,7 +3,7 @@ import numpy as np
 import xgboost as xgb
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import accuracy_score
 
 # load dataset
@@ -44,8 +44,14 @@ y = df.iloc[:, 9].values
 
 x_boost_train, x_boost_test, y_boost_train, y_boost_test = train_test_split(X, y, test_size=0.20, random_state=42)
 
-dtrain = xgb.DMatrix(x_boost_train, y_boost_train)
-dtest = xgb.DMatrix(x_boost_test, y_boost_test)
+label_encoder = LabelEncoder()
+label_encoder = label_encoder.fit(y_boost_train)
+label_encoder = label_encoder.fit(y_boost_test)
+label_encoded_y_train = label_encoder.transform(y_boost_train)
+label_encoded_y_test = label_encoder.transform(y_boost_test)
+
+dtrain = xgb.DMatrix(x_boost_train, label_encoded_y_train)
+dtest = xgb.DMatrix(x_boost_test, label_encoded_y_test)
 # specify parameters via map
 param = {'max_depth': 2, 'eta': 1, 'objective': 'multi:softmax', 'num_class': 8}
 num_round = 2
