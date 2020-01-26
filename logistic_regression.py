@@ -6,6 +6,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder
+import xgboost as xgb
 
 # load dataset
 df = pd.read_csv("yeast.csv")
@@ -16,7 +18,7 @@ df.dtypes
 df.shape
 df.describe()
 
-# visaulisation
+# visualisation
 fig1 = plt.figure()
 df.class_distribution.value_counts().plot(kind="bar", title="Liczebności poszczególnych klas", color="green")
 plt.show()
@@ -54,11 +56,33 @@ print("Accuracy for logistic regression is equal to", np.round(accuracy_score(y_
 labels = list(set(y))
 cm = confusion_matrix(y_test, y_pred, labels)
 df_cm = pd.DataFrame(cm, range(10), range(10))
-sns.heatmap(df_cm, annot=True, annot_kws={"size": 15}) # font size
+sns.heatmap(df_cm, annot=True, annot_kws={"size": 15})  # font size
 tick_marks = np.arange(len(labels))
 plt.xticks(tick_marks, labels, rotation=45)
-plt.yticks(tick_marks, labels, rotation = 45)
+plt.yticks(tick_marks, labels, rotation=45)
 plt.title("Macierz pomyłek dla regresji logistycznej", size=14)
 plt.show()
+
+# XGBOOST
+label_encoder = LabelEncoder()
+label_encoder = label_encoder.fit(y_train)
+label_encoded_y_train = label_encoder.transform(y_train)
+label_encoded_y_test = label_encoder.transform(y_test)
+
+clf = xgb.XGBClassifier(objective='multi:softmax',
+                        eta=0.2,
+                        n_estimators=100,
+                        subsample=0.5,
+                        colsample_bytree=0.5,
+                        max_depth=15)
+
+clf.fit(X_train, label_encoded_y_train)
+
+y_pred = clf.predict(X_test)
+y_pred_train = clf.predict(X_train)
+
+ac_test = accuracy_score(label_encoded_y_test, y_pred)
+ac_train = accuracy_score(label_encoded_y_train, y_pred_train)
+
 
 
